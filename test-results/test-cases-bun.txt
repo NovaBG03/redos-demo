@@ -1,0 +1,114 @@
+ReDoS Vulnerability Demonstration
+Runtime: Bun 1.2.5
+
+### Avoid Nested Quantifiers - Username Validation
+Vulnerable: /^([a-zA-Z0-9]+)+$/
+Safe      : /^[a-zA-Z0-9]{3,20}$/
+
+- Valid short username: "User123" (7 chars)
+  • Vulnerable: ✓ match    [0.060 ms]
+  • Safe      : ✓ match    [0.007 ms]
+  • Safe regex is 8.1x faster
+
+- Malicious input: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..." (31 chars)
+  • Vulnerable: ✗ no match [417.242 ms]
+  • Safe      : ✗ no match [  0.004 ms]
+  • Safe regex is 110032.2x faster
+
+### Limit Quantifiers - Credit Card Number Validation
+Vulnerable: /^(\d+[\s-]?)+$/
+Safe      : /^(\d{4}[\s-]?){3}\d{4}$/
+
+- Valid credit card number: "1234-5678-1234-5678" (19 chars)
+  • Vulnerable: ✓ match    [0.149 ms]
+  • Safe      : ✓ match    [0.020 ms]
+  • Safe regex is 7.4x faster
+
+- Malicious input: "111111111111111111111111111111..." (5000 chars)
+  • Vulnerable: ✓ match    [0.003 ms]
+  • Safe      : ✗ no match [0.025 ms]
+  • Safe regex is 9.3x slower
+
+### Greedy vs Lazy Quantifiers - HTML Tag Parsing
+Vulnerable: /<div>.*<\/div>/
+Safe      : /<div>.*?<\/div>/
+
+- Valid HTML block: "<div>Some Content</div>" (23 chars)
+  • Vulnerable: ✓ match    [0.021 ms]
+  • Safe      : ✓ match    [0.005 ms]
+  • Safe regex is 3.8x faster
+
+- Malicious input: "<div>aaaaaaaaaaaaaaaaaaaaaaaaa..." (10005 chars)
+  • Vulnerable: ✗ no match [0.018 ms]
+  • Safe      : ✗ no match [0.010 ms]
+  • Safe regex is 1.8x faster
+
+### Atomic Grouping with Lookahead - Password Validation
+Vulnerable: /^(?=.*[A-Z]+)(?=.*\d+)([A-Za-z\d]+)+$/
+Safe      : /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,20}$/
+
+- Valid strong password: "StrongPass123" (13 chars)
+  • Vulnerable: ✓ match    [0.032 ms]
+  • Safe      : ✓ match    [0.009 ms]
+  • Safe regex is 3.6x faster
+
+- Malicious input: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA..." (10000 chars)
+  • Vulnerable: ✗ no match [0.018 ms]
+  • Safe      : ✗ no match [0.017 ms]
+  • Performance is roughly the same
+
+### JSON-like Pattern Matching
+Vulnerable: /\{(([^{}]|\{([^{}]|\{[^{}]*\})*\}))*\}/
+Safe      : /\{(?:[^{}]|(?:\{[^{}]*\})){0,100}\}/
+
+- Valid nested object: "{"user":{"name":"John","settin..." (52 chars)
+  • Vulnerable: ✓ match    [0.029 ms]
+  • Safe      : ✓ match    [0.009 ms]
+  • Safe regex is 3.4x faster
+
+- Malicious input: "{{{{{{{{{{{{{{{{{{{{{}}}}}}}}}..." (42 chars)
+  • Vulnerable: ✓ match    [0.001 ms]
+  • Safe      : ✓ match    [0.000 ms]
+  • Safe regex is 1.7x faster
+
+### Email Validation
+Vulnerable: /^([a-zA-Z0-9])(([\-.]|[_]+)?([a-zA-Z0-9]+))*(@){1}[a-z0-9]+[.]{1}(([a-z]{2,3})|([a-z]{2,3}[.]{1}[a-z]{2,3}))$/
+Safe      : /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,50}@[a-z0-9]+\.[a-z]{2,3}(\.[a-z]{2,3})?$/
+
+- Valid email: "user.name@example.com" (21 chars)
+  • Vulnerable: ✓ match    [0.037 ms]
+  • Safe      : ✓ match    [0.010 ms]
+  • Safe regex is 3.6x faster
+
+- Malicious input: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..." (35 chars)
+  • Vulnerable: ✗ no match [1056.712 ms]
+  • Safe      : ✗ no match [   0.006 ms]
+  • Safe regex is 189273.1x faster
+
+### Java Class Name Validation
+Vulnerable: /^(([a-z])+.)+[A-Z]([a-z])+$/
+Safe      : /^(([a-z])+\.)+[A-Z]([a-zA-Z])+$/
+
+- Valid Java class name: "MyClass" (7 chars)
+  • Vulnerable: ✗ no match [0.015 ms]
+  • Safe      : ✗ no match [0.003 ms]
+  • Safe regex is 4.3x faster
+
+- Malicious input: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..." (41 chars)
+  • Vulnerable: ✗ no match [2229.112 ms]
+  • Safe      : ✗ no match [   0.007 ms]
+  • Safe regex is 307463.7x faster
+
+### HTML Parsing with Attributes
+Vulnerable: /<([a-z]+)([^<]+)*(?:>(.*?)<\/\1>|\s+\/>)/
+Safe      : /<([a-z]+)(\s+[a-zA-Z]+="[^"]*")*\s*(?:>(.*?)<\/\1>|\s+\/>)/
+
+- Valid HTML: "<div class="test">Съдържание</..." (34 chars)
+  • Vulnerable: ✓ match    [0.322 ms]
+  • Safe      : ✓ match    [0.011 ms]
+  • Safe regex is 30.3x faster
+
+- Malicious input: "<div x="y" x="y" x="y" x="y" " (29 chars)
+  • Vulnerable: ✗ no match [1640.444 ms]
+  • Safe      : ✗ no match [   0.010 ms]
+  • Safe regex is 167546.1x faster

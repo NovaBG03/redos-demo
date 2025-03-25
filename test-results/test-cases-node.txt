@@ -1,0 +1,114 @@
+ReDoS Vulnerability Demonstration
+Runtime: Node.js v20.19.0
+
+### Avoid Nested Quantifiers - Username Validation
+Vulnerable: /^([a-zA-Z0-9]+)+$/
+Safe      : /^[a-zA-Z0-9]{3,20}$/
+
+- Valid short username: "User123" (7 chars)
+  • Vulnerable: ✓ match    [0.011 ms]
+  • Safe      : ✓ match    [0.008 ms]
+  • Performance is roughly the same
+
+- Malicious input: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..." (31 chars)
+  • Vulnerable: ✗ no match [5915.658 ms]
+  • Safe      : ✗ no match [   0.051 ms]
+  • Safe regex is 115333.0x faster
+
+### Limit Quantifiers - Credit Card Number Validation
+Vulnerable: /^(\d+[\s-]?)+$/
+Safe      : /^(\d{4}[\s-]?){3}\d{4}$/
+
+- Valid credit card number: "1234-5678-1234-5678" (19 chars)
+  • Vulnerable: ✓ match    [0.027 ms]
+  • Safe      : ✓ match    [0.016 ms]
+  • Safe regex is 1.7x faster
+
+- Malicious input: "111111111111111111111111111111..." (5000 chars)
+  • Vulnerable: ✓ match    [0.019 ms]
+  • Safe      : ✗ no match [0.021 ms]
+  • Performance is roughly the same
+
+### Greedy vs Lazy Quantifiers - HTML Tag Parsing
+Vulnerable: /<div>.*<\/div>/
+Safe      : /<div>.*?<\/div>/
+
+- Valid HTML block: "<div>Some Content</div>" (23 chars)
+  • Vulnerable: ✓ match    [0.016 ms]
+  • Safe      : ✓ match    [0.010 ms]
+  • Safe regex is 1.5x faster
+
+- Malicious input: "<div>aaaaaaaaaaaaaaaaaaaaaaaaa..." (10005 chars)
+  • Vulnerable: ✗ no match [0.027 ms]
+  • Safe      : ✗ no match [0.025 ms]
+  • Performance is roughly the same
+
+### Atomic Grouping with Lookahead - Password Validation
+Vulnerable: /^(?=.*[A-Z]+)(?=.*\d+)([A-Za-z\d]+)+$/
+Safe      : /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,20}$/
+
+- Valid strong password: "StrongPass123" (13 chars)
+  • Vulnerable: ✓ match    [0.017 ms]
+  • Safe      : ✓ match    [0.011 ms]
+  • Safe regex is 1.6x faster
+
+- Malicious input: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA..." (10000 chars)
+  • Vulnerable: ✗ no match [0.037 ms]
+  • Safe      : ✗ no match [0.031 ms]
+  • Performance is roughly the same
+
+### JSON-like Pattern Matching
+Vulnerable: /\{(([^{}]|\{([^{}]|\{[^{}]*\})*\}))*\}/
+Safe      : /\{(?:[^{}]|(?:\{[^{}]*\})){0,100}\}/
+
+- Valid nested object: "{"user":{"name":"John","settin..." (52 chars)
+  • Vulnerable: ✓ match    [0.017 ms]
+  • Safe      : ✓ match    [0.012 ms]
+  • Performance is roughly the same
+
+- Malicious input: "{{{{{{{{{{{{{{{{{{{{{}}}}}}}}}..." (42 chars)
+  • Vulnerable: ✓ match    [0.019 ms]
+  • Safe      : ✓ match    [0.013 ms]
+  • Performance is roughly the same
+
+### Email Validation
+Vulnerable: /^([a-zA-Z0-9])(([\-.]|[_]+)?([a-zA-Z0-9]+))*(@){1}[a-z0-9]+[.]{1}(([a-z]{2,3})|([a-z]{2,3}[.]{1}[a-z]{2,3}))$/
+Safe      : /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,50}@[a-z0-9]+\.[a-z]{2,3}(\.[a-z]{2,3})?$/
+
+- Valid email: "user.name@example.com" (21 chars)
+  • Vulnerable: ✓ match    [0.031 ms]
+  • Safe      : ✓ match    [0.014 ms]
+  • Safe regex is 2.2x faster
+
+- Malicious input: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..." (35 chars)
+  • Vulnerable: ✗ no match [8399.092 ms]
+  • Safe      : ✗ no match [   0.206 ms]
+  • Safe regex is 40747.6x faster
+
+### Java Class Name Validation
+Vulnerable: /^(([a-z])+.)+[A-Z]([a-z])+$/
+Safe      : /^(([a-z])+\.)+[A-Z]([a-zA-Z])+$/
+
+- Valid Java class name: "MyClass" (7 chars)
+  • Vulnerable: ✗ no match [0.119 ms]
+  • Safe      : ✗ no match [0.144 ms]
+  • Performance is roughly the same
+
+- Malicious input: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..." (41 chars)
+  • Vulnerable: ✗ no match [1255.893 ms]
+  • Safe      : ✗ no match [   0.105 ms]
+  • Safe regex is 11951.3x faster
+
+### HTML Parsing with Attributes
+Vulnerable: /<([a-z]+)([^<]+)*(?:>(.*?)<\/\1>|\s+\/>)/
+Safe      : /<([a-z]+)(\s+[a-zA-Z]+="[^"]*")*\s*(?:>(.*?)<\/\1>|\s+\/>)/
+
+- Valid HTML: "<div class="test">Съдържание</..." (34 chars)
+  • Vulnerable: ✓ match    [0.230 ms]
+  • Safe      : ✓ match    [0.039 ms]
+  • Safe regex is 5.9x faster
+
+- Malicious input: "<div x="y" x="y" x="y" x="y" " (29 chars)
+  • Vulnerable: ✗ no match [1180.934 ms]
+  • Safe      : ✗ no match [   0.075 ms]
+  • Safe regex is 15851.5x faster
