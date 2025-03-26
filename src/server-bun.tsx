@@ -1,9 +1,12 @@
 import { serve } from 'bun';
 import index from '~/frontend/index.html';
 import { getCryptoCoin } from '~/lib/crypto-coin';
-import { subscribeWithEmail } from './lib/email';
+import { subscribeWithEmail } from '~/lib/email';
+
+const PORT = 3000;
 
 const server = serve({
+  port: PORT,
   routes: {
     // Serve index.html for all unmatched routes.
     '/*': index,

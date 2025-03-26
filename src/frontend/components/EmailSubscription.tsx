@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 
 const subscribeEmail = async (email: string): Promise<{ success: boolean; message: string }> => {
-  const response = await fetch('/api/subscribe', {
+  const response = await fetch('http://localhost:3000/api/subscribe', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

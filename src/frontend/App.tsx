@@ -281,7 +281,7 @@ const CoinCard = ({ coinId }: { coinId: string }) => {
   const query = useQuery({
     queryKey: ['coin', coinId],
     queryFn: async () => {
-      const response = await fetch(`/api/coin/${coinId}`);
+      const response = await fetch(`http://localhost:3000/api/coin/${coinId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch data for ${coinId}`);
       }
